@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scaffold Counterweight Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font and general body styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        /* Ensure inputs and buttons have a consistent look */
+        input[type="number"] {
+            @apply w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out;
+            /* Hide number input arrows for Webkit browsers (Chrome, Safari, Edge) */
+            -webkit-appearance: none;
+            margin: 0; /* Remove default margin for number inputs */
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* Hide number input arrows for Firefox */
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]:disabled {
+            @apply bg-gray-100 cursor-not-allowed; /* Style for disabled input */
+        }
+        button {
+            @apply w-full py-3 px-6 bg-blue-600 text-white font-semibold rounded-md shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-200 ease-in-out;
+            /* Added blue highlight on hover/focus */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Default shadow */
+        }
+        button:hover {
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3), 0 4px 6px -2px rgba(59, 130, 246, 0.2); /* Blue shadow on hover */
+        }
+        button:focus {
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5); /* Stronger blue ring on focus */
+        }
+
+        .info-box {
+            @apply bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md shadow-sm mb-6;
+        }
+        .error-box {
+            @apply bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-sm mb-6;
+        }
+        /* SVG container for responsiveness */
+        .svg-container {
+            width: 100%;
+            max-width: 400px; /* Limit max width for larger screens */
+            margin: 0 auto 20px auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #ffffff;
+        }
+        /* Style for radio buttons */
+        .form-radio {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            display: inline-block;
+            width: 1.25em;
+            height: 1.25em;
+            border-radius: 50%;
+            border: 2px solid #cbd5e0; /* light gray border */
+            background-color: #fff;
+            margin-right: 0.5em;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .form-radio:checked {
+            background-color: #3b82f6; /* blue-500 */
+            border-color: #3b82f6;
+            box-shadow: inset 0 0 0 4px #fff; /* inner white circle */
+        }
+        .form-radio:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5); /* blue-500 with opacity */
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="bg-white p-8 rounded-xl shadow-2xl max-w-lg w-full transform transition-all duration-300 hover:scale-105">
+        <!-- Company Logo Placeholder -->
+        <div class="flex justify-center mb-6">
+            <img src="https://i.postimg.cc/Jzyth230/50-UMCLogo-without-85.jpg" alt="Universal Manufacturing" class="w-36 h-12 rounded-md shadow-sm">
+        </div>
+
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-6 text-center">
+            Scaffold Counterweight Calculator
+        </h1>
+        <p class="text-gray-600 mb-8 text-center">
+            Calculate the required counterweight for your scaffold to ensure stability.
+        </p>
+
+        <div class="info-box">
+            <p class="font-bold">How it works:</p>
+            <ul class="list-disc list-inside text-sm mt-2">
+                <li>This tool provides simple calculations only. (For detailed engineering, consult a professional engineer.)</li>
+                <li>It considers the overturning moment from the load and the stabilizing moments from the scaffold's weight and the counterweight.</li>
+                <li>A safety factor is applied, typically derived from industry standards like ANSI/ASSP A10.8 or OSHA regulations, to provide an additional margin of safety.</li>
+            </ul>
+        </div>
+
+        <div class="svg-container">
+            <h3 class="text-lg font-semibold text-gray-800 text-center py-3 bg-gray-50 border-b border-gray-200">Scaffold Diagram</h3>
+            <svg viewBox="0 0 400 250" class="w-full h-auto" style="background-color: #f8fafc;">
+                <!-- Scaffold Base -->
+                <rect x="50" y="200" width="300" height="20" fill="#a0aec0" rx="5" ry="5" />
+                <!-- Scaffold Legs -->
+                <rect x="50" y="50" width="20" height="150" fill="#a0aec0" rx="5" ry="5" />
+                <rect x="330" y="50" width="20" height="150" fill="#a0aec0" rx="5" ry="5" />
+                <!-- Scaffold Top Platform -->
+                <rect x="30" y="30" width="340" height="20" fill="#718096" rx="5" ry="5" />
+
+                <!-- Pivot Point (Left side) -->
+                <circle cx="60" cy="220" r="5" fill="#e53e3e" />
+                <text x="65" y="230" font-family="Inter" font-size="14" fill="#e53e3e" font-weight="bold">Pivot</text>
+
+                <!-- Applied Load (L) (Left, outside pivot) -->
+                <line x1="0" y1="30" x2="0" y2="70" stroke="#c53030" stroke-width="2" marker-end="url(#arrowhead)" />
+                <text x="5" y="60" font-family="Inter" font-size="16" fill="#c53030" font-weight="bold">L</text>
+                <text x="5" y="80" font-family="Inter" font-size="12" fill="#c53030">(Load)</text>
+
+                <!-- Load Distance (d_L) (From left pivot to load) -->
+                <line x1="0" y1="100" x2="60" y2="100" stroke="#3182ce" stroke-width="1" stroke-dasharray="4 2" />
+                <line x1="0" y1="95" x2="0" y2="105" stroke="#3182ce" stroke-width="1" />
+                <line x1="60" y1="95" x2="60" y2="105" stroke="#3182ce" stroke-width="1" />
+                <text x="20" y="115" font-family="Inter" font-size="14" fill="#3182ce" font-weight="bold">d_L</text>
+
+                <!-- Scaffold CG (CG_S) (Still at center of scaffold, distance from left pivot is half width) -->
+                <line x1="200" y1="100" x2="200" y2="150" stroke="#48bb78" stroke-width="2" marker-end="url(#arrowhead)" />
+                <text x="205" y="130" font-family="Inter" font-size="16" fill="#48bb78" font-weight="bold">CG_S</text>
+                <text x="205" y="150" font-family="Inter" font-size="12" fill="#48bb78">(Scaffold Wt.)</text>
+
+                <!-- Scaffold Width (Full width, for reference) -->
+                <line x1="50" y1="170" x2="350" y2="170" stroke="#3182ce" stroke-width="1" stroke-dasharray="4 2" />
+                <line x1="50" y1="165" x2="50" y2="175" stroke="#3182ce" stroke-width="1" />
+                <line x1="350" y1="165" x2="350" y2="175" stroke="#3182ce" stroke-width="1" />
+                <text x="180" y="185" font-family="Inter" font-size="14" fill="#3182ce" font-weight="bold">Scaffold Width</text>
+
+                <!-- Counterweight (W) elements - Center of Scaffold -->
+                <g id="cwCenterElements">
+                    <line x1="200" y1="150" x2="200" y2="190" stroke="#805ad5" stroke-width="2" marker-end="url(#arrowhead)" />
+                    <text x="205" y="180" font-family="Inter" font-size="16" fill="#805ad5" font-weight="bold">W</text>
+                    <text x="205" y="200" font-family="Inter" font-size="12" fill="#805ad5">(Counterweight)</text>
+                    <line x1="60" y1="210" x2="200" y2="210" stroke="#3182ce" stroke-width="1" stroke-dasharray="4 2" />
+                    <line x1="60" y1="205" x2="60" y2="215" stroke="#3182ce" stroke-width="1" />
+                    <line x1="200" y1="205" x2="200" y2="215" stroke="#3182ce" stroke-width="1" />
+                    <text x="130" y="225" font-family="Inter" font-size="14" fill="#3182ce" font-weight="bold">d_W</text>
+                </g>
+
+                <!-- Counterweight (W) elements - Custom Distance (visually extended) -->
+                <g id="cwCustomElements" style="display: none;">
+                    <!-- Visual position for 'past the end' - using 380 as far right within 400 viewBox -->
+                    <line x1="380" y1="150" x2="380" y2="190" stroke="#805ad5" stroke-width="2" marker-end="url(#arrowhead)" />
+                    <text x="385" y="180" font-family="Inter" font-size="16" fill="#805ad5" font-weight="bold">W</text>
+                    <text x="385" y="200" font-family="Inter" font-size="12" fill="#805ad5">(Counterweight)</text>
+                    <!-- Distance line from pivot to visual position -->
+                    <line x1="60" y1="210" x2="380" y2="210" stroke="#3182ce" stroke-width="1" stroke-dasharray="4 2" />
+                    <line x1="60" y1="205" x2="60" y2="215" stroke="#3182ce" stroke-width="1" />
+                    <line x1="380" y1="205" x2="380" y2="215" stroke="#3182ce" stroke-width="1" />
+                    <text x="220" y="225" font-family="Inter" font-size="14" fill="#3182ce" font-weight="bold">d_W</text>
+                </g>
+
+                <!-- Arrowhead Definition -->
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="currentColor" />
+                    </marker>
+                </defs>
+            </svg>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Input: Load -->
+            <div>
+                <label for="load" class="block text-gray-700 text-sm font-bold mb-2">
+                    Applied Load (lbs):
+                </label>
+                <input type="number" id="load" value="450" placeholder="e.g., 450" class="input-field">
+            </div>
+
+            <!-- Input: Load Distance -->
+            <div>
+                <label for="loadDistance" class="block text-gray-700 text-sm font-bold mb-2">
+                    Load Distance from Pivot (ft):
+                </label>
+                <input type="number" id="loadDistance" value="1.5" placeholder="e.g., 1.5" class="input-field">
+            </div>
+
+            <!-- Input: Scaffold Weight -->
+            <div>
+                <label for="scaffoldWeight" class="block text-gray-700 text-sm font-bold mb-2">
+                    Scaffold Weight (lbs):
+                </label>
+                <input type="number" id="scaffoldWeight" value="500" placeholder="e.g., 500" class="input-field">
+            </div>
+
+            <!-- Input: Scaffold Width (to derive CG distance) -->
+            <div>
+                <label for="scaffoldWidth" class="block text-gray-700 text-sm font-bold mb-2">
+                    Scaffold Width (ft):
+                </label>
+                <input type="number" id="scaffoldWidth" value="6" placeholder="e.g., 6" class="input-field">
+            </div>
+
+            <!-- Counterweight Placement Option -->
+            <div class="md:col-span-2">
+                <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Counterweight Placement:
+                </label>
+                <div class="flex items-center space-x-4">
+                    <input type="radio" id="cwPlacementCenter" name="cwPlacement" value="center" checked class="form-radio text-blue-600">
+                    <label for="cwPlacementCenter" class="text-gray-700">Center of Scaffold</label>
+
+                    <input type="radio" id="cwPlacementCustom" name="cwPlacement" value="custom" class="form-radio text-blue-600">
+                    <label for="cwPlacementCustom" class="text-gray-700">Custom Distance from Pivot</label>
+                </div>
+                <label for="counterweightDistance" class="block text-gray-700 text-sm font-bold mt-4 mb-2">
+                    Counterweight Distance from Pivot (ft):
+                    <span class="text-gray-500 text-xs">(Calculated or custom input)</span>
+                </label>
+                <input type="number" id="counterweightDistance" placeholder="e.g., 3" class="input-field">
+            </div>
+
+            <!-- Input: Safety Factor -->
+            <div class="md:col-span-2">
+                <label for="safetyFactor" class="block text-gray-700 text-sm font-bold mb-2">
+                    Safety Factor:
+                </label>
+                <input type="number" id="safetyFactor" value="4" placeholder="e.g., 4" class="input-field">
+            </div>
+        </div>
+
+        <button id="calculateBtn" class="calculate-button">
+            Calculate Counterweight
+        </button>
+
+        <div id="resultContainer" class="mt-8 p-6 bg-green-50 rounded-lg shadow-inner text-center hidden">
+            <h2 class="text-2xl font-bold text-green-800 mb-2">Required Counterweight:</h2>
+            <p id="result" class="text-4xl font-extrabold text-green-900"></p>
+            <p class="text-green-700 mt-2">lbs</p>
+        </div>
+
+        <div id="errorContainer" class="mt-8 error-box hidden">
+            <p id="errorMessage" class="font-bold"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loadInput = document.getElementById('load');
+            const loadDistanceInput = document.getElementById('loadDistance');
+            const scaffoldWeightInput = document.getElementById('scaffoldWeight');
+            const scaffoldWidthInput = document.getElementById('scaffoldWidth');
+            const counterweightDistanceInput = document.getElementById('counterweightDistance');
+            const safetyFactorInput = document.getElementById('safetyFactor');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const resultContainer = document.getElementById('resultContainer');
+            const resultDisplay = document.getElementById('result');
+            const errorContainer = document.getElementById('errorContainer');
+            const errorMessageDisplay = document.getElementById('errorMessage');
+
+            const cwPlacementCenter = document.getElementById('cwPlacementCenter');
+            const cwPlacementCustom = document.getElementById('cwPlacementCustom');
+
+            // SVG elements for dynamic display
+            const cwCenterElements = document.getElementById('cwCenterElements');
+            const cwCustomElements = document.getElementById('cwCustomElements');
+
+
+            // Function to update counterweightDistance default based on scaffoldWidth and selected placement
+            const updateCounterweightDistanceAndSVG = () => {
+                const scaffoldWidth = parseFloat(scaffoldWidthInput.value);
+
+                if (cwPlacementCenter.checked) {
+                    if (!isNaN(scaffoldWidth) && scaffoldWidth > 0) {
+                        counterweightDistanceInput.value = (scaffoldWidth / 2).toFixed(1);
+                        counterweightDistanceInput.disabled = true; // Disable input for auto-calculated value
+                    } else {
+                        counterweightDistanceInput.value = '';
+                        counterweightDistanceInput.disabled = true;
+                    }
+                    cwCenterElements.style.display = 'block'; // Show center elements
+                    cwCustomElements.style.display = 'none';    // Hide custom elements
+                } else if (cwPlacementCustom.checked) {
+                    counterweightDistanceInput.disabled = false; // Enable input for custom value
+                    // Do not auto-fill, let user type. If it was previously auto-filled, clear it.
+                    if (counterweightDistanceInput.value === '' || parseFloat(counterweightDistanceInput.value) === (scaffoldWidth / 2)) { // Check against raw value, not fixed
+                         counterweightDistanceInput.value = ''; // Clear if it was the default center value
+                    }
+                    cwCenterElements.style.display = 'none';    // Hide center elements
+                    cwCustomElements.style.display = 'block';   // Show custom elements
+                } else {
+                    counterweightDistanceInput.value = ''; // Clear if scaffold width is invalid
+                    counterweightDistanceInput.disabled = true;
+                    cwCenterElements.style.display = 'none';
+                    cwCustomElements.style.display = 'none';
+                }
+            };
+
+            // Event listeners for scaffoldWidth and radio buttons to update counterweightDistance and SVG
+            scaffoldWidthInput.addEventListener('input', updateCounterweightDistanceAndSVG);
+            cwPlacementCenter.addEventListener('change', updateCounterweightDistanceAndSVG);
+            cwPlacementCustom.addEventListener('change', updateCounterweightDistanceAndSVG);
+
+            // Initial call to set default on load
+            updateCounterweightDistanceAndSVG();
+
+            calculateBtn.addEventListener('click', () => {
+                // Hide previous results and errors
+                resultContainer.classList.add('hidden');
+                errorContainer.classList.add('hidden');
+                errorMessageDisplay.textContent = '';
+
+                // Parse inputs
+                const load = parseFloat(loadInput.value);
+                const loadDistance = parseFloat(loadDistanceInput.value);
+                const scaffoldWeight = parseFloat(scaffoldWeightInput.value);
+                const scaffoldWidth = parseFloat(scaffoldWidthInput.value);
+                let counterweightDistance = parseFloat(counterweightDistanceInput.value); // Get current value from input
+                const safetyFactor = parseFloat(safetyFactorInput.value);
+
+                // Input validation
+                if (isNaN(load) || load < 0) {
+                    displayError('Please enter a valid non-negative number for Applied Load.');
+                    return;
+                }
+                if (isNaN(loadDistance) || loadDistance <= 0) {
+                    displayError('Please enter a valid positive number for Load Distance from Pivot.');
+                    return;
+                }
+                if (isNaN(scaffoldWeight) || scaffoldWeight < 0) {
+                    displayError('Please enter a valid non-negative number for Scaffold Weight.');
+                    return;
+                }
+                if (isNaN(scaffoldWidth) || scaffoldWidth <= 0) {
+                    displayError('Please enter a valid positive number for Scaffold Width.');
+                    return;
+                }
+                // If counterweightDistance is invalid or not set, and custom is selected, show error
+                if (cwPlacementCustom.checked && (isNaN(counterweightDistance) || counterweightDistance <= 0)) {
+                    displayError('Please enter a valid positive number for Custom Counterweight Distance from Pivot.');
+                    return;
+                }
+                // If center is checked, ensure counterweightDistance is correctly set (should be handled by update function)
+                if (cwPlacementCenter.checked) {
+                    counterweightDistance = scaffoldWidth / 2;
+                }
+
+
+                if (isNaN(safetyFactor) || safetyFactor < 1) {
+                    displayError('Please enter a valid Safety Factor (minimum 1).');
+                    return;
+                }
+
+                // Calculate moments
+                const overturningMoment = load * loadDistance;
+                const scaffoldStabilizingMoment = scaffoldWeight * (scaffoldWidth / 2); // Assuming scaffold CG is at its center
+
+                // Required total stabilizing moment with safety factor
+                const requiredTotalStabilizingMoment = safetyFactor * overturningMoment;
+
+                // Moment needed from counterweight
+                const momentNeededFromCounterweight = requiredTotalStabilizingMoment - scaffoldStabilizingMoment;
+
+                let requiredCounterweight;
+                if (momentNeededFromCounterweight <= 0) {
+                    // If the scaffold's own weight is enough or more than enough to stabilize with safety factor
+                    requiredCounterweight = 0;
+                } else {
+                    // Calculate the counterweight
+                    requiredCounterweight = momentNeededFromCounterweight / counterweightDistance;
+                }
+
+                // Round to the nearest 10 and remove decimals
+                requiredCounterweight = Math.round(requiredCounterweight / 10) * 10;
+
+                // Display result
+                resultDisplay.textContent = requiredCounterweight; // No .toFixed(2) here
+                resultContainer.classList.remove('hidden');
+            });
+
+            function displayError(message) {
+                errorMessageDisplay.textContent = message;
+                errorContainer.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
